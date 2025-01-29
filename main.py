@@ -41,12 +41,13 @@ async def upload_pdf(file: UploadFile = File(...)):
     try: 
         quiz_data = pipeline.process_pdf(str(temp_file_path), max_pages=1)
         quizzes.extend(quiz_data)
-        # Write quizzes to a JSON file
-        with open("quizzes.json", "w", encoding="utf-8") as f:
-             json.dump(quiz_data, f, ensure_ascii=False, indent=4)
+        # processed_quiz = TextProcessor.gpt_output_to_json(quizzes)
+        # # Write quizzes to a JSON file
+        # with open("quizzes.json", "w", encoding="utf-8") as f:
+        #      json.dump(processed_quiz, f, ensure_ascii=False, indent=4)
                 
-        upload_file("quizzes.json", "quizzes/quiz.json")
-        return TextProcessor.gpt_output_to_json(quizzes)
+        # upload_file("quizzes.json", "quizzes/quiz.json")
+        return JSONResponse(content={"message": "Quiz generated successfully!"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
     finally:

@@ -40,3 +40,32 @@ class TextProcessor:
                         
         
         return formatted_data
+    @staticmethod
+    def gpt_output_to_json_text(input_text):
+        formatted_data = []
+        
+        # Regular expression to capture the questions, choices, and answers
+        pattern = re.compile(r'Question (\d+): (.*?)\nChoices: (.*?)\nAnswer: (.*?)\n', re.DOTALL)
+        
+        # Split input text into sections based on the blank lines
+        formatted_entry = {"text": input_text.split("\n\n")[0].strip(), "questions": []}
+        
+        # Find all questions, choices, and answers
+        questions_data = pattern.findall(input_text)
+        
+        for q_data in questions_data:
+            # Split the choices using regex to capture the pattern of choice letters and text
+            choices = re.split(r'[a-e]\)', q_data[2])[1:]
+            
+            question = {
+                "question": q_data[1].strip(),
+                "choices": {
+                    f"choice{i+1}": choice.strip() 
+                    for i, choice in enumerate(choices)
+                },
+                "answer": q_data[3].strip()
+            }
+            formatted_entry["questions"].append(question)        
+        
+        formatted_data.append(formatted_entry)
+        return formatted_data
