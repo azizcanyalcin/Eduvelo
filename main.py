@@ -7,13 +7,12 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 import shutil
 
-from RnD.GenerateQuizFromPaper import generate_quiz_from_paper
-from RnD.ResearchPaper import extract_paper_gpt
 from firebase.auth import sign_up, sign_in
 from firebase.storage import upload_file
 from models import SignUpRequest
 from utils.PDFToQuizPipeline import PDFQuizPipeline
 from utils.PDFProcessor import PDFProcessor
+from utils.TextProcessor import TextProcessor
 
 app = FastAPI()
 
@@ -44,11 +43,10 @@ async def upload_pdf(file: UploadFile = File(...)):
         quizzes.extend(quiz_data)
         # Write quizzes to a JSON file
         with open("quizzes.json", "w", encoding="utf-8") as f:
-            json.dump(quiz_data, f, ensure_ascii=False, indent=4)
+             json.dump(quiz_data, f, ensure_ascii=False, indent=4)
                 
         upload_file("quizzes.json", "quizzes/quiz.json")
-        
-        return quizzes
+        return TextProcessor.gpt_output_to_json(quizzes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
     finally:
