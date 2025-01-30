@@ -4,7 +4,7 @@ class PDFProcessor:
     """Handles PDF processing tasks like text extraction and splitting into smaller PDFs."""
     
     @staticmethod
-    def extract_text(pdf_file):
+    def extract_text_from_pdf(pdf_file):
         with open(pdf_file, 'rb') as file:
             reader = PyPDF2.PdfReader(file)
             return ''.join(page.extract_text() + '\n' for page in reader.pages)

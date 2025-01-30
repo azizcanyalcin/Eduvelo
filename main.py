@@ -1,7 +1,9 @@
 import asyncio
 import io
 import json
+import os
 import PyPDF2
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from pathlib import Path
@@ -14,9 +16,10 @@ from utils.PDFToQuizPipeline import PDFQuizPipeline
 from utils.PDFProcessor import PDFProcessor
 from utils.TextProcessor import TextProcessor
 
+load_dotenv()
 app = FastAPI()
 
-API_KEY = "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"
+API_KEY = os.getenv("OPENAI_API_KEY")
 
 pipeline = PDFQuizPipeline(api_key=API_KEY)
 
