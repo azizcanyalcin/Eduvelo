@@ -20,15 +20,25 @@ API_KEY = "sk-proj-yAOpFxUzT5fNh8Kp9LzMpqe8TK-VpHCpHuK4MRMqBiNpO1VXg0X4GVL9D13dJ
 
 pipeline = PDFQuizPipeline(api_key=API_KEY)
 
-quizzes = []
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
+from pathlib import Path
+import asyncio
 
-async def save_file_async(file, path):
-    loop = asyncio.get_running_loop()
-    with open(path, "wb") as temp_file:
-        await loop.run_in_executor(None, shutil.copyfileobj, file.file, temp_file)
+app = FastAPI()
 
-@app.post("/upload-pdf/")
-async def upload_pdf(file: UploadFile = File(...)):
+async def save_file_async(file: UploadFile, file_path: Path):
+    """Save the uploaded file asynchronously."""
+    with open(file_path, "wb") as buffer:
+        while chunk := await file.read(1024 * 1024):  # Read in chunks (1MB)
+            buffer.write(chunk)
+
+async def stream_quiz(pdf_path):
+    async for quiz in pipeline.pdf_to_quiz(pdf_path, max_pages=5):
+        yield quiz
+
+@app.post("/generate-quiz-from-pdf/")
+async def generate_quiz_from_pdf(file: UploadFile = File(...)):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
     
@@ -36,30 +46,10 @@ async def upload_pdf(file: UploadFile = File(...)):
     temp_dir.mkdir(exist_ok=True)
     temp_file_path = temp_dir / file.filename
 
-    await save_file_async(file, temp_file_path)
+    with open(temp_file_path, "wb") as buffer:
+        buffer.write(await file.read())
 
-    try: 
-        quiz_data = pipeline.process_pdf(str(temp_file_path), max_pages=1)
-        quizzes.extend(quiz_data)
-        # processed_quiz = TextProcessor.gpt_output_to_json(quizzes)
-        # # Write quizzes to a JSON file
-        # with open("quizzes.json", "w", encoding="utf-8") as f:
-        #      json.dump(processed_quiz, f, ensure_ascii=False, indent=4)
-                
-        # upload_file("quizzes.json", "quizzes/quiz.json")
-        return JSONResponse(content={"message": "Quiz generated successfully!"})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
-    finally:
-        if temp_file_path.exists():
-            try:
-                temp_file_path.unlink()
-            except Exception as e:
-                print(f"Dosya silinemedi: {e}")
-
-@app.get("/get-quizzes/")
-async def get_quizzes():
-    return JSONResponse(content={"quizzes": quizzes})
+    return StreamingResponse(stream_quiz(str(temp_file_path)), media_type="application/json")
 
 @app.post("/signup/")
 async def register(request: SignUpRequest):
