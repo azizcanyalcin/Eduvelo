@@ -15,7 +15,7 @@ class PDFQuizPipeline:
         self.quiz_generator = QuizGenerator(api_key)
 
 
-    async def pdf_to_quiz(self, pdf_path, max_pages=50, min_paragraph_length=100):
+    async def pdf_to_quiz(self, pdf_path, max_pages=50, min_paragraph_length=175):
         """Generates quizzes from a PDF and streams them in real-time."""
         paths = PDFProcessor.split_pdf(pdf_path, max_pages)
         nlp = spacy.blank("en")
@@ -34,7 +34,7 @@ class PDFQuizPipeline:
                     self.save_to_db(i, filename) 
                     self.remove_file(filename)
 
-                    yield json.dumps({"question": processed_quiz}) + "\n"
+                    yield processed_quiz
 
 
     def save_to_file(self,processed_quiz, filename):
