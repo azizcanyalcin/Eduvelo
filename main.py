@@ -43,29 +43,23 @@ import asyncio
 
 app = FastAPI()
 
-# Ensure a directory exists to store images temporarily
 UPLOAD_DIR = "extracted_images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/extract_images/")
 async def extract_images(pdf: UploadFile = File(...)):
     try:
-        # Save the uploaded PDF to a temporary file
         pdf_path = os.path.join(UPLOAD_DIR, pdf.filename)
         with open(pdf_path, "wb") as buffer:
             buffer.write(await pdf.read())
 
-        # Initialize ImageExtractor with the saved PDF file path
         extractor = ImageExtractor(pdf_path)
 
-        # Extract images using pdfplumber and PyMuPDF
         pdfplumber_images = extractor.extract_images_pdfplumber()
         pymupdf_images = extractor.extract_images_pymupdf()
 
-        # Combine the lists of image filenames from both methods
         all_images = pdfplumber_images + pymupdf_images
 
-        # Return the list of images as response (file paths for simplicity)
         return {"images": all_images}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -195,12 +189,7 @@ async def langchain_pdf_to_quiz(file: UploadFile = File(...)):
 
     return StreamingResponse(stream_quiz_langchain(str(temp_file_path)), media_type="application/json")
 
-
-
-
-
-
-
+"""End of LangChain Implementation"""
 
 
 if __name__ == "__main__":
