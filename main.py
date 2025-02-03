@@ -13,10 +13,15 @@ from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
 
 from firebase.auth import sign_up, sign_in
 from firebase.storage import upload_file
+
 from models import SignUpRequest
+
 from utils.PDFToQuizPipeline import PDFQuizPipeline
 from utils.PDFProcessor import PDFProcessor
 from utils.TextProcessor import TextProcessor
+
+from utils.ImageExtractor import ImageExtractor
+
 
 load_dotenv()
 app = FastAPI()
@@ -37,6 +42,33 @@ from pathlib import Path
 import asyncio
 
 app = FastAPI()
+
+# Ensure a directory exists to store images temporarily
+UPLOAD_DIR = "extracted_images"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@app.post("/extract_images/")
+async def extract_images(pdf: UploadFile = File(...)):
+    try:
+        # Save the uploaded PDF to a temporary file
+        pdf_path = os.path.join(UPLOAD_DIR, pdf.filename)
+        with open(pdf_path, "wb") as buffer:
+            buffer.write(await pdf.read())
+
+        # Initialize ImageExtractor with the saved PDF file path
+        extractor = ImageExtractor(pdf_path)
+
+        # Extract images using pdfplumber and PyMuPDF
+        pdfplumber_images = extractor.extract_images_pdfplumber()
+        pymupdf_images = extractor.extract_images_pymupdf()
+
+        # Combine the lists of image filenames from both methods
+        all_images = pdfplumber_images + pymupdf_images
+
+        # Return the list of images as response (file paths for simplicity)
+        return {"images": all_images}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def save_file_async(file: UploadFile, file_path: Path):
     """Save the uploaded file asynchronously."""
@@ -70,7 +102,7 @@ async def get_file(file: UploadFile = File(...)):
 
 @app.get("/quiz-stream/")
 async def sse():
-    return StreamingResponse(stream_quiz_sse("temp_uploads\Deneme.pdf"))
+    return StreamingResponse(stream_quiz_sse("temp_uploads\paper.pdf"))
 
 def event_stream():
     while True:

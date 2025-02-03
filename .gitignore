@@ -1,3 +1,6 @@
 .env
 temp_uploads
 venv
+__pycache__/
+*.pyc
+*.pyo
