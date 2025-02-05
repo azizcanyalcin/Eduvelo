@@ -1,7 +1,3 @@
-Here's a well-structured **GitHub README** for **Eduvelo**:  
-
----
-
 # 📖 Eduvelo – Gamified Learning for Deep Focus  
 
 Eduvelo is a mobile application designed to **prevent distractions** while reading academic papers or complex non-fiction books. By **gamifying the learning process**, it helps users stay engaged, retain knowledge effectively, and make learning enjoyable.  
