@@ -1,7 +1,7 @@
 import pyrebase
 
 fireBaseConfig = {
-    "apiKey": "AIzaSyBSwpJF8Zyr3UevjIsy_hNFU-jMYq--Beg",
+    "apiKey": "AIzaSyBg-amZ2_O2ilTAEUd3iTbwNplRM4rWzWk",
     "authDomain": "eduvelo-v1.firebaseapp.com",
     "databaseURL": "https://eduvelo-v1-default-rtdb.firebaseio.com",
     "projectId": "eduvelo-v1",
